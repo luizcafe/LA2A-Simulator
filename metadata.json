@@ -1,0 +1,7 @@
+{
+  "name": "LA-2A Fixed Threshold Simulator",
+  "description": "An interactive audio visualizer demonstrating the 'Fixed Threshold' concept of the LA-2A Leveling Amplifier using Web Audio API and Gemini.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
