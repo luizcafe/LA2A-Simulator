@@ -7,6 +7,50 @@ import { useAudioProcessor } from './hooks/useAudioProcessor';
 import { AudioSourceType } from './types';
 import { Power, Info, Settings2, Mic, Activity, Disc, CircleDot, Play } from 'lucide-react';
 
+// Internal Logo Component to avoid broken images
+const MixComLogo = () => (
+  <div className="flex flex-col items-center justify-center group cursor-default mb-4">
+    <div className="relative w-24 h-24 drop-shadow-xl transition-transform duration-500 group-hover:scale-105 group-hover:rotate-2">
+      <svg viewBox="0 0 200 200" className="w-full h-full">
+        {/* Saucer */}
+        <circle cx="100" cy="100" r="96" fill="#dedede" stroke="#aaa" strokeWidth="1" />
+        <circle cx="100" cy="100" r="80" fill="#f5f5f5" />
+        
+        {/* Cup Shadow */}
+        <ellipse cx="102" cy="102" rx="70" ry="70" fill="rgba(0,0,0,0.15)" />
+        
+        {/* Cup Handle */}
+        <path d="M 160 85 C 185 85 185 115 160 115" stroke="#f0f0f0" strokeWidth="16" fill="none" strokeLinecap="round" />
+
+        {/* Cup Body */}
+        <circle cx="100" cy="100" r="70" fill="#f0f0f0" stroke="#ccc" strokeWidth="1" />
+        
+        {/* Coffee Liquid */}
+        <circle cx="100" cy="100" r="62" fill="#cd853f" stroke="#a05a29" strokeWidth="2" />
+        
+        {/* Abstract Art in Coffee (Blue/Red/White strokes) */}
+        <g opacity="0.9">
+             {/* Left Red/Orange Stroke */}
+             <path d="M 65 65 Q 55 100 65 135" stroke="#d35400" strokeWidth="12" fill="none" strokeLinecap="round" />
+             {/* Middle Blue Stroke */}
+             <path d="M 85 60 Q 75 100 85 140" stroke="#2980b9" strokeWidth="12" fill="none" strokeLinecap="round" />
+             {/* Right White Shape */}
+             <path d="M 115 75 Q 135 100 115 125" stroke="#fff" strokeWidth="14" fill="none" strokeLinecap="round" />
+             <circle cx="125" cy="100" r="6" fill="#fff" />
+        </g>
+        
+        {/* Reflection/Shine */}
+        <path d="M 60 40 Q 100 20 140 40" stroke="rgba(255,255,255,0.4)" strokeWidth="4" fill="none" />
+      </svg>
+    </div>
+    <div className="mt-2 text-center">
+      <h1 className="text-sm font-bold text-[#8a6a2e] tracking-[0.15em] font-serif uppercase drop-shadow-sm whitespace-nowrap">
+        MIX<span className="text-[0.8em] align-top lowercase opacity-80">com</span> LUIZ CAFÉ
+      </h1>
+    </div>
+  </div>
+);
+
 const App: React.FC = () => {
   const [peakReduction, setPeakReduction] = useState(30);
   const [gain, setGain] = useState(50);
@@ -40,7 +84,8 @@ const App: React.FC = () => {
   }, [hasRecording, isRecording]);
 
   return (
-    <div className="min-h-screen bg-[#111] flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-[#111] flex flex-col items-center justify-center p-4 font-sans">
+      
       {/* Main Rack Unit */}
       <div className="w-full max-w-6xl bg-gray-300 rounded-md shadow-2xl overflow-hidden border-t border-white/20 relative">
         
@@ -126,6 +171,9 @@ const App: React.FC = () => {
 
           {/* Center: Meter & Branding */}
           <div className="flex flex-col items-center justify-center w-full md:w-2/4">
+             {/* Logo Placed Inside Faceplate */}
+             <MixComLogo />
+
              <div className="mb-4 text-center">
                  <h1 className="text-3xl font-black text-gray-800 tracking-tighter">TELETRONIX</h1>
                  <h2 className="text-sm font-bold text-gray-600 tracking-[0.2em]">LEVELING AMPLIFIER</h2>

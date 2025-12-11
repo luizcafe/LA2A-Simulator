@@ -28,35 +28,64 @@ export const Knob: React.FC<KnobProps> = ({
   const percentage = (value - min) / (max - min);
   const rotation = -135 + (percentage * 270);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleStart = (clientY: number) => {
     setIsDragging(true);
-    startY.current = e.clientY;
+    startY.current = clientY;
     startValue.current = value;
   };
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    handleStart(e.clientY);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    // Prevent default scrolling when starting interaction with the knob
+    if (e.cancelable) e.preventDefault(); 
+    handleStart(e.touches[0].clientY);
+  };
+
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging) return;
-      const deltaY = startY.current - e.clientY;
-      const range = max - min;
+    const handleMove = (clientY: number) => {
+      const deltaY = startY.current - clientY; // Up is positive, Down is negative
       const sensitivity = 0.5; // pixels per unit
       let newValue = startValue.current + (deltaY * sensitivity);
       newValue = Math.max(min, Math.min(max, newValue));
       onChange(newValue);
     };
 
-    const handleMouseUp = () => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      handleMove(e.clientY);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isDragging) return;
+      // Prevent scrolling while dragging
+      if (e.cancelable) e.preventDefault();
+      handleMove(e.touches[0].clientY);
+    };
+
+    const handleEnd = () => {
       setIsDragging(false);
     };
 
     if (isDragging) {
       window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener('mouseup', handleEnd);
+      // Use { passive: false } to allow preventDefault to block scrolling
+      window.addEventListener('touchmove', handleTouchMove, { passive: false });
+      window.addEventListener('touchend', handleEnd);
+      window.addEventListener('touchcancel', handleEnd);
     }
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('mouseup', handleEnd);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleEnd);
+      window.removeEventListener('touchcancel', handleEnd);
     };
   }, [isDragging, min, max, onChange]);
 
@@ -64,9 +93,10 @@ export const Knob: React.FC<KnobProps> = ({
     <div className="flex flex-col items-center select-none" style={{ width: size }}>
       <div 
         ref={knobRef}
-        className="relative cursor-ns-resize"
+        className="relative cursor-ns-resize touch-none"
         style={{ width: size, height: size }}
         onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
       >
         {/* Background ticks */}
         <svg width="100%" height="100%" viewBox="0 0 100 100">
