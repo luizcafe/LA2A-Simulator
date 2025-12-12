@@ -56,19 +56,15 @@ const getApiKey = (): string | undefined => {
       return import.meta.env.VITE_API_KEY;
     }
   } catch (e) {
-    // Ignore error if import.meta is not supported in current context
+    // Ignore error
   }
 
   // 2. Try Standard Process Env (Node, Next.js, Webpack)
   try {
     if (typeof process !== 'undefined' && process.env) {
-      // Standard Node
       if (process.env.API_KEY) return process.env.API_KEY;
-      // Next.js Public
       if (process.env.NEXT_PUBLIC_API_KEY) return process.env.NEXT_PUBLIC_API_KEY;
-      // Create React App
       if (process.env.REACT_APP_API_KEY) return process.env.REACT_APP_API_KEY;
-      // Fallback for VITE_ in process.env (sometimes injected by bundlers)
       if (process.env.VITE_API_KEY) return process.env.VITE_API_KEY;
     }
   } catch (e) {
@@ -82,7 +78,16 @@ export const getGeminiExplanation = async (userPrompt: string): Promise<string> 
   const apiKey = getApiKey();
 
   if (!apiKey) {
-    return "Erro de Configuração: Chave de API não detectada.\n\nIMPORTANTE PARA VERCEL: Vá em Settings > Environment Variables e adicione uma chave chamada 'VITE_API_KEY' com o valor da sua chave Gemini. Variáveis sem o prefixo VITE_ não funcionam no navegador.";
+    // Diagnostic logging for user debugging
+    const debugInfo = [
+      "Diagnóstico de Variáveis:",
+      "- VITE_API_KEY: " + (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_KEY ? "Detectada (Oculta)" : "Ausente/Undefined"),
+      "- Environment: " + (typeof process !== 'undefined' && process.env ? "Node/Process Disponível" : "Browser/Sem Process"),
+    ].join('\n');
+    
+    console.warn(debugInfo);
+
+    return `Erro: Chave de API não detectada.\n\nSTATUS: O valor da chave está 'undefined'.\n\nCOMO RESOLVER:\n1. Certifique-se de ter adicionado 'VITE_API_KEY' nas configurações da Vercel.\n2. Se você acabou de adicionar o arquivo package.json, aguarde o novo deploy terminar.\n3. O app precisa ser 'construído' (Build) para ler a chave.\n\n(Consulte o console do navegador para mais detalhes técnicos).`;
   }
 
   try {
@@ -98,6 +103,6 @@ export const getGeminiExplanation = async (userPrompt: string): Promise<string> 
     return response.text || "Não consegui gerar uma explicação neste momento.";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "Desculpe, o serviço de IA encontrou um erro. Verifique se sua chave de API é válida e tem cota disponível.";
+    return "Erro na API do Gemini. Verifique se sua chave é válida, se tem créditos disponíveis e se o serviço está operante.";
   }
 };
