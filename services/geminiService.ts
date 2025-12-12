@@ -45,49 +45,15 @@ Seu objetivo é ensinar o usuário sobre o funcionamento deste compressor icôni
 Responda sempre em Português do Brasil. Seja didático.
 REGRA DE FORMATAÇÃO: NÃO utilize o caractere asterisco (*) em nenhuma hipótese. Não use negrito ou itálico com markdown. Use apenas texto simples. Para destacar termos, use "aspas". Para listas, use hífens.`;
 
-// Helper to safely retrieve API Key in different environments
-const getApiKey = (): string | undefined => {
-  // 1. Try Vite standard (Recommended for Vercel + React/Vite)
-  // Variables must be prefixed with VITE_ to be exposed to the browser
-  try {
-    // @ts-ignore
-    if (import.meta && import.meta.env && import.meta.env.VITE_API_KEY) {
-      // @ts-ignore
-      return import.meta.env.VITE_API_KEY;
-    }
-  } catch (e) {
-    // Ignore error
-  }
-
-  // 2. Try Standard Process Env (Node, Next.js, Webpack)
-  try {
-    if (typeof process !== 'undefined' && process.env) {
-      if (process.env.API_KEY) return process.env.API_KEY;
-      if (process.env.NEXT_PUBLIC_API_KEY) return process.env.NEXT_PUBLIC_API_KEY;
-      if (process.env.REACT_APP_API_KEY) return process.env.REACT_APP_API_KEY;
-      if (process.env.VITE_API_KEY) return process.env.VITE_API_KEY;
-    }
-  } catch (e) {
-    // Ignore error
-  }
-
-  return undefined;
-};
-
 export const getGeminiExplanation = async (userPrompt: string): Promise<string> => {
-  const apiKey = getApiKey();
+  // Try to get key from standard process.env (Node/Webpack) or global variable if injected
+  const apiKey = (typeof process !== 'undefined' && process.env?.API_KEY) 
+                 ? process.env.API_KEY 
+                 : undefined;
 
   if (!apiKey) {
-    // Diagnostic logging for user debugging
-    const debugInfo = [
-      "Diagnóstico de Variáveis:",
-      "- VITE_API_KEY: " + (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_KEY ? "Detectada (Oculta)" : "Ausente/Undefined"),
-      "- Environment: " + (typeof process !== 'undefined' && process.env ? "Node/Process Disponível" : "Browser/Sem Process"),
-    ].join('\n');
-    
-    console.warn(debugInfo);
-
-    return `Erro: Chave de API não detectada.\n\nSTATUS: O valor da chave está 'undefined'.\n\nCOMO RESOLVER:\n1. Certifique-se de ter adicionado 'VITE_API_KEY' nas configurações da Vercel.\n2. Se você acabou de adicionar o arquivo package.json, aguarde o novo deploy terminar.\n3. O app precisa ser 'construído' (Build) para ler a chave.\n\n(Consulte o console do navegador para mais detalhes técnicos).`;
+    console.warn("API Key is missing. Check your environment variables.");
+    return "Erro: Chave de API não configurada. Por favor, configure a variável de ambiente API_KEY.";
   }
 
   try {
@@ -103,6 +69,6 @@ export const getGeminiExplanation = async (userPrompt: string): Promise<string> 
     return response.text || "Não consegui gerar uma explicação neste momento.";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "Erro na API do Gemini. Verifique se sua chave é válida, se tem créditos disponíveis e se o serviço está operante.";
+    return "Erro ao conectar com o Gemini. Tente novamente mais tarde.";
   }
 };
