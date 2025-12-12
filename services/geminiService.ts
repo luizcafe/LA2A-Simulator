@@ -45,16 +45,36 @@ Seu objetivo é ensinar o usuário sobre o funcionamento deste compressor icôni
 Responda sempre em Português do Brasil. Seja didático.
 REGRA DE FORMATAÇÃO: NÃO utilize o caractere asterisco (*) em nenhuma hipótese. Não use negrito ou itálico com markdown. Use apenas texto simples. Para destacar termos, use "aspas". Para listas, use hífens.`;
 
-// Helper to safely retrieve API Key in different environments (Vercel/Vite/Node)
+// Helper to safely retrieve API Key in different environments
 const getApiKey = (): string | undefined => {
-  // Try standard process.env (Node/Webpack/Next.js)
-  if (typeof process !== 'undefined' && process.env?.API_KEY) {
-    return process.env.API_KEY;
+  // 1. Try Vite standard (Recommended for Vercel + React/Vite)
+  // Variables must be prefixed with VITE_ to be exposed to the browser
+  try {
+    // @ts-ignore
+    if (import.meta && import.meta.env && import.meta.env.VITE_API_KEY) {
+      // @ts-ignore
+      return import.meta.env.VITE_API_KEY;
+    }
+  } catch (e) {
+    // Ignore error if import.meta is not supported in current context
   }
-  // Try Vite/ESM standard which is common on Vercel for React apps
-  if (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_KEY) {
-    return (import.meta as any).env.VITE_API_KEY;
+
+  // 2. Try Standard Process Env (Node, Next.js, Webpack)
+  try {
+    if (typeof process !== 'undefined' && process.env) {
+      // Standard Node
+      if (process.env.API_KEY) return process.env.API_KEY;
+      // Next.js Public
+      if (process.env.NEXT_PUBLIC_API_KEY) return process.env.NEXT_PUBLIC_API_KEY;
+      // Create React App
+      if (process.env.REACT_APP_API_KEY) return process.env.REACT_APP_API_KEY;
+      // Fallback for VITE_ in process.env (sometimes injected by bundlers)
+      if (process.env.VITE_API_KEY) return process.env.VITE_API_KEY;
+    }
+  } catch (e) {
+    // Ignore error
   }
+
   return undefined;
 };
 
@@ -62,7 +82,7 @@ export const getGeminiExplanation = async (userPrompt: string): Promise<string> 
   const apiKey = getApiKey();
 
   if (!apiKey) {
-    return "Erro de Configuração: Chave de API não detectada. Se você está no Vercel, defina a variável de ambiente 'API_KEY' (ou 'VITE_API_KEY') nas configurações do projeto.";
+    return "Erro de Configuração: Chave de API não detectada.\n\nIMPORTANTE PARA VERCEL: Vá em Settings > Environment Variables e adicione uma chave chamada 'VITE_API_KEY' com o valor da sua chave Gemini. Variáveis sem o prefixo VITE_ não funcionam no navegador.";
   }
 
   try {
@@ -78,6 +98,6 @@ export const getGeminiExplanation = async (userPrompt: string): Promise<string> 
     return response.text || "Não consegui gerar uma explicação neste momento.";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "Desculpe, encontrei um erro ao consultar o manual. Tente novamente mais tarde.";
+    return "Desculpe, o serviço de IA encontrou um erro. Verifique se sua chave de API é válida e tem cota disponível.";
   }
 };
