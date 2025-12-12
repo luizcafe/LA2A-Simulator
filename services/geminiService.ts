@@ -45,13 +45,28 @@ Seu objetivo é ensinar o usuário sobre o funcionamento deste compressor icôni
 Responda sempre em Português do Brasil. Seja didático.
 REGRA DE FORMATAÇÃO: NÃO utilize o caractere asterisco (*) em nenhuma hipótese. Não use negrito ou itálico com markdown. Use apenas texto simples. Para destacar termos, use "aspas". Para listas, use hífens.`;
 
+// Helper to safely retrieve API Key in different environments (Vercel/Vite/Node)
+const getApiKey = (): string | undefined => {
+  // Try standard process.env (Node/Webpack/Next.js)
+  if (typeof process !== 'undefined' && process.env?.API_KEY) {
+    return process.env.API_KEY;
+  }
+  // Try Vite/ESM standard which is common on Vercel for React apps
+  if (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_KEY) {
+    return (import.meta as any).env.VITE_API_KEY;
+  }
+  return undefined;
+};
+
 export const getGeminiExplanation = async (userPrompt: string): Promise<string> => {
-  if (!process.env.API_KEY) {
-    return "Erro: Chave de API ausente. Verifique sua configuração.";
+  const apiKey = getApiKey();
+
+  if (!apiKey) {
+    return "Erro de Configuração: Chave de API não detectada. Se você está no Vercel, defina a variável de ambiente 'API_KEY' (ou 'VITE_API_KEY') nas configurações do projeto.";
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: userPrompt,
@@ -63,6 +78,6 @@ export const getGeminiExplanation = async (userPrompt: string): Promise<string> 
     return response.text || "Não consegui gerar uma explicação neste momento.";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "Desculpe, encontrei um erro ao consultar o manual.";
+    return "Desculpe, encontrei um erro ao consultar o manual. Tente novamente mais tarde.";
   }
 };
